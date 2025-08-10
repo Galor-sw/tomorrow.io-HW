@@ -46,12 +46,14 @@ The application consists of multiple modules representing different services:
    ```
 
 3. **Set environment variables**:
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory with your configuration:
    ```bash
-   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/tomorrow-hw?retryWrites=true&w=majority
+   MONGODB_URI=your_mongodb_atlas_connection_string
    TOMORROW_IO_API_KEY=your_tomorrow_io_api_key
    PORT=3001
    ```
+   
+   **Note**: The `.env` file contains sensitive information and is not included in this repository. Please contact the maintainer for the environment configuration file.
 
 4. **Run the application**:
    ```bash
