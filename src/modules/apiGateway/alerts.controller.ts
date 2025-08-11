@@ -36,6 +36,15 @@ export class AlertsController {
       // NOTE: For 'weatherCode' comparisons, '=' / '!=' are most meaningful; other operators will be treated numerically at evaluation time.
       return await this.alertsService.create(dto);
     } catch (error) {
+      // Handle user not found errors
+      if (error.message.includes('not found')) {
+        throw new HttpException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: error.message,
+          error: 'Not Found'
+        }, HttpStatus.NOT_FOUND);
+      }
+      
       // Handle invalid location errors
       if (error.message.includes('Invalid location name')) {
         throw new HttpException({
