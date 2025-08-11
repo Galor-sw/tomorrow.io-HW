@@ -29,6 +29,18 @@ export class Alert {
 
   @Prop({ trim: true, default: 'metric' })
   units?: Units;
+
+  @Prop({
+    type: {
+      status: { type: String, enum: ['triggered', 'not_triggered'], default: 'not_triggered' },
+      date: { type: Date, default: Date.now }
+    },
+    default: { status: 'not_triggered', date: new Date() }
+  })
+  triggerStatus: {
+    status: 'triggered' | 'not_triggered';
+    date: Date;
+  };
 }
 
 export const AlertSchema = SchemaFactory.createForClass(Alert);
@@ -38,3 +50,5 @@ AlertSchema.index({ userId: 1 });
 AlertSchema.index({ locationText: 1 });
 AlertSchema.index({ lat: 1, lon: 1 });
 AlertSchema.index({ parameter: 1 });
+AlertSchema.index({ 'triggerStatus.status': 1 });
+AlertSchema.index({ 'triggerStatus.date': -1 });

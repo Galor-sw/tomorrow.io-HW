@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { UsersRepository } from '../dal/repos/users.repo';
-import { CreateUserDto } from '../api/dtos/create-user.dto';
-import { UpdateUserDto } from '../api/dtos/update-user.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserInterface } from '../dal/types/user.types';
 
 @Injectable()

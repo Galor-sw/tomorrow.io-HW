@@ -1,5 +1,5 @@
 import { IsIn, IsLatitude, IsLongitude, IsMongoId, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ALL_PARAMS, OPERATORS } from '../../dal/types/alert.types';
+import { OPERATORS } from '../../dal/types/alert.types';
 
 export class CreateAlertDto {
   @IsMongoId()
@@ -14,7 +14,7 @@ export class CreateAlertDto {
   @IsOptional() @IsLongitude()
   lon?: number;
 
-  @IsIn(ALL_PARAMS as unknown as string[])
+  @IsString()
   parameter!: string;
 
   @IsIn(OPERATORS as unknown as string[])

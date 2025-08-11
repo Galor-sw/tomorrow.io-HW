@@ -1,5 +1,6 @@
 import { AlertsService } from './alerts.service';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
+import { ParametersRepo } from '../dal/repos/parameters.repo';
 import { Types } from 'mongoose';
 import { WeatherService } from '../weather/weather.service';
 import { UsersService } from './users.service';
@@ -7,14 +8,16 @@ import { UsersService } from './users.service';
 describe('AlertsService', () => {
   let service: AlertsService;
   let repo: jest.Mocked<AlertsRepo>;
+  let parametersRepo: jest.Mocked<ParametersRepo>;
   let weatherService: jest.Mocked<WeatherService>;
   let usersService: jest.Mocked<UsersService>;
 
   beforeEach(() => {
     repo = { create: jest.fn(), listAllByUser: jest.fn() } as any;
+    parametersRepo = { getParameterNames: jest.fn() } as any;
     weatherService = { getWeatherData: jest.fn() } as any;
     usersService = { findById: jest.fn(), addAlertToUser: jest.fn() } as any;
-    service = new AlertsService(repo, weatherService, usersService);
+    service = new AlertsService(repo, weatherService, usersService, parametersRepo);
   });
 
   it('creates an alert with ObjectId userId and default units', async () => {
@@ -25,6 +28,10 @@ describe('AlertsService', () => {
       operator: '>',
       threshold: 30
     };
+    
+    // Mock the parameter validation
+    parametersRepo.getParameterNames.mockResolvedValue(['temperature', 'humidity', 'windSpeed']);
+    
     repo.create.mockResolvedValue({ _id: '1', ...dto, units: 'metric' });
 
     const result = await service.create(dto);
