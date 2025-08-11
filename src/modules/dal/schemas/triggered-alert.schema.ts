@@ -1,33 +1,41 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+import { AlertParameter, Operator } from '../types/alert.types';
 
-export type TriggeredAlertDocument = HydratedDocument<TriggeredAlert>;
+export type TriggeredAlertDoc = HydratedDocument<TriggeredAlert>;
 
-@Schema()
+@Schema({ timestamps: true, collection: 'triggeredAlerts' })
 export class TriggeredAlert {
-  @Prop({ required: true })
-  alertId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Alert', required: true })
+  alertId: Types.ObjectId;
 
   @Prop({ required: true })
-  userId: string;
+  dateTriggered: Date;
 
-  @Prop({ required: true })
-  location: string;
+  @Prop({ type: Object, required: true })
+  alertData: {
+    parameter: AlertParameter;
+    operator: Operator;
+    threshold: number;
+    currentValue: number;
+  };
 
-  @Prop({ required: true })
-  condition: string;
-
-  @Prop({ required: true })
-  actualValue: number;
-
-  @Prop({ required: true })
-  threshold: number;
-
-  @Prop({ default: Date.now })
-  triggeredAt: Date;
-
-  @Prop({ default: false })
-  notificationSent: boolean;
+  @Prop({ type: Object, default: {} })
+  sentMessage: {
+    email?: {
+      sent: boolean;
+      timeSent?: Date;
+    };
+    phone?: {
+      sent: boolean;
+      timeSent?: Date;
+    };
+  };
 }
 
 export const TriggeredAlertSchema = SchemaFactory.createForClass(TriggeredAlert);
+
+// Indexes for efficient querying
+TriggeredAlertSchema.index({ dateTriggered: -1 }); // Sort by latest first
+TriggeredAlertSchema.index({ alertId: 1 });
+TriggeredAlertSchema.index({ 'alertData.parameter': 1 });

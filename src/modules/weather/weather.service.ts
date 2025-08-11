@@ -12,7 +12,6 @@ export class WeatherService {
 
   async getWeatherData(location: string) {
     try {
-      this.logger.log(`API Key configured: ${this.apiKey ? 'Yes' : 'No'}`);
       if (!this.apiKey) {
         throw new Error('Tomorrow.io API key not configured');
       }
@@ -25,15 +24,10 @@ export class WeatherService {
         apikey: this.apiKey,
       };
 
-      this.logger.log(`API Request params:`, params);
-
-      this.logger.log(`Fetching weather data for location: ${location}`);
-      console.log(params);
       const response = await firstValueFrom(
         this.httpService.get(this.baseUrl, { params })
       );
 
-      this.logger.log(`Weather data received for ${location}`);
       return response.data;
     } catch (error) {
       this.logger.error(`Error fetching weather data for ${location}:`, error.message);

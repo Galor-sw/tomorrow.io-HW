@@ -1,24 +1,6 @@
 import { Body, Controller, Get, Post, Param, UsePipes, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
-import { CreateAlertDto } from '../api/dtos/create-alert.dto';
-
-/*
-POST /alerts
-Content-Type: application/json
-{
-  "userId": "66b6e6f0b6c7d5e1a2b3c4d5",
-  "locationText": "tel aviv, israel",
-  "lat": 32.0853,
-  "lon": 34.7818,
-  "parameter": "windSpeed",
-  "operator": ">=",
-  "threshold": 8,
-  "description": "Windy conditions",
-  "units": "metric"
-}
-Successful: 201 Created, returns saved document with _id, createdAt, updatedAt.
-For 'weatherCode', prefer '=' or '!='; other operators will be treated numerically during evaluation.
-*/
+import { CreateAlertDto } from './dtos/create-alert.dto';
 
 @Controller('api')
 export class AlertsController {

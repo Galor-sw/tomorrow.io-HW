@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
-import { CreateAlertDto } from '../api/dtos/create-alert.dto';
+import { CreateAlertDto } from './dtos/create-alert.dto';
 import { AlertParameter, Operator, Units } from '../dal/types/alert.types';
 import { WeatherService } from '../weather/weather.service';
 import { UsersService } from './users.service';
