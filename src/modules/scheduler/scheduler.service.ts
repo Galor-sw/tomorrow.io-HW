@@ -18,12 +18,22 @@ export class SchedulerService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
+    
+    // Check if scheduler is disabled via environment variable
+    if (process.env.SCHEDULER_DISABLED === 'true') {
+      console.log('⏸️  Scheduler is disabled via SCHEDULER_DISABLED=true');
+      return;
+    }
+
+    console.log('🚀 Starting scheduler...');
+
     // Stop the default cron job
     try {
       const job = this.schedulerRegistry.getCronJob('handleCron');
       job.stop();
+      console.log('🛑 Stopped default cron job');
     } catch (error) {
-      // Job might not exist yet, that's okay
+      console.log('ℹ️  No default cron job to stop');
     }
 
     // Start a new cron job with the environment variable
@@ -35,6 +45,7 @@ export class SchedulerService implements OnModuleInit {
     );
 
     this.schedulerRegistry.addCronJob('dynamicHandleCron', cronJob);
+    console.log('✅ Scheduler started successfully');
   }
 
   private getCronExpression(): string {

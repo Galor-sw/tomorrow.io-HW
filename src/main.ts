@@ -21,6 +21,14 @@ async function bootstrap() {
     logger: logLevels,
   });
   
+  // Configure CORS to allow requests from React frontend
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], // React dev server
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
+  
   // Configure logging to write to files
   const logger = new Logger('Bootstrap');
   
@@ -34,5 +42,6 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);
   logger.log(`🗄️  MongoDB URI: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
+  logger.log(`🌐 CORS enabled for React frontend (http://localhost:3000)`);
 }
 bootstrap();

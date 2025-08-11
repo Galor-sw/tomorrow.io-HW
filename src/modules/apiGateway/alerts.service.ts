@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { AlertParameter, Operator, Units } from '../dal/types/alert.types';
 import { WeatherService } from '../weather/weather.service';
 import { UsersService } from './users.service';
+import { ParametersRepo } from '../dal/repos/parameters.repo';
 
 @Injectable()
 export class AlertsService {
@@ -12,6 +13,7 @@ export class AlertsService {
     private readonly alertsRepo: AlertsRepo,
     private readonly weatherService: WeatherService,
     private readonly usersService: UsersService,
+    private readonly parametersRepo: ParametersRepo,
   ) {}
 
   async create(dto: CreateAlertDto) {
@@ -20,6 +22,12 @@ export class AlertsService {
       await this.usersService.findById(dto.userId);
     } catch (error) {
       throw new NotFoundException(`User with ID ${dto.userId} not found`);
+    }
+
+    // Validate parameter exists in database
+    const validParameters = await this.parametersRepo.getParameterNames();
+    if (!validParameters.includes(dto.parameter)) {
+      throw new BadRequestException(`Invalid parameter: ${dto.parameter}. Valid parameters are: ${validParameters.join(', ')}`);
     }
 
     // Validate location exists by making a weather API call
@@ -51,8 +59,18 @@ export class AlertsService {
       
       return createdAlert;
     } catch (error) {
-      // Re-throw the error with the same message for invalid locations
-      throw error;
+      // Convert weather service errors to proper HTTP exceptions
+      if (error.message && error.message.includes('Invalid location name')) {
+        throw new BadRequestException(error.message);
+      }
+      
+      // Handle other weather API errors
+      if (error.message && error.message.includes('Weather API error')) {
+        throw new BadRequestException(error.message);
+      }
+      
+      // Handle other errors
+      throw new BadRequestException(`Failed to validate location: ${error.message}`);
     }
   }
 

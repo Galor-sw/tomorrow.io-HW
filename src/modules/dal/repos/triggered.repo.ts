@@ -40,22 +40,55 @@ export class TriggeredAlertsRepo {
   }
 
   findAll() {
-    return this.model.find().sort({ dateTriggered: -1 }).lean();
+    return this.model.find()
+      .populate('alertId', 'locationText lat lon parameter operator threshold description units userId createdAt')
+      .sort({ dateTriggered: -1 })
+      .lean();
   }
 
   findByAlertId(alertId: Types.ObjectId) {
-    return this.model.find({ alertId }).sort({ dateTriggered: -1 }).lean();
+    return this.model.find({ alertId })
+      .populate('alertId', 'locationText lat lon parameter operator threshold description units userId createdAt')
+      .sort({ dateTriggered: -1 })
+      .lean();
   }
 
   findByUserId(userId: Types.ObjectId) {
-    return this.model.find({ userId }).sort({ dateTriggered: -1 }).lean();
+    return this.model.aggregate([
+      {
+        $lookup: {
+          from: 'alerts',
+          localField: 'alertId',
+          foreignField: '_id',
+          as: 'alert'
+        }
+      },
+      {
+        $unwind: '$alert'
+      },
+      {
+        $match: {
+          'alert.userId': userId
+        }
+      },
+      {
+        $sort: { dateTriggered: -1 }
+      }
+    ]);
   }
 
   findLatestByAlertId(alertId: Types.ObjectId) {
-    return this.model.findOne({ alertId }).sort({ dateTriggered: -1 }).lean();
+    return this.model.findOne({ alertId })
+      .populate('alertId', 'locationText lat lon parameter operator threshold description units userId createdAt')
+      .sort({ dateTriggered: -1 })
+      .lean();
   }
 
   findRecent(limit: number = 50) {
-    return this.model.find().sort({ dateTriggered: -1 }).limit(limit).lean();
+    return this.model.find()
+      .populate('alertId', 'locationText lat lon parameter operator threshold description units userId createdAt')
+      .sort({ dateTriggered: -1 })
+      .limit(limit)
+      .lean();
   }
 }
