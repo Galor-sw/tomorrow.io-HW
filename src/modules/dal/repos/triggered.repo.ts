@@ -11,6 +11,10 @@ export class TriggeredAlertsRepo {
     return this.model.create(data);
   }
 
+  findById(triggeredAlertId: Types.ObjectId) {
+    return this.model.findById(triggeredAlertId).lean();
+  }
+
   async saveTriggeredAlert(alert: any) {
     try {
       const triggeredAlertData = {
@@ -32,10 +36,12 @@ export class TriggeredAlertsRepo {
         }
       };
 
-      await this.create(triggeredAlertData);
+      const savedTriggeredAlert = await this.create(triggeredAlertData);
       console.log(`Triggered alert saved to database for alert ID: ${alert._id}`);
+      return savedTriggeredAlert;
     } catch (error) {
       console.error(`Failed to save triggered alert: ${error.message}`);
+      throw error;
     }
   }
 
@@ -90,5 +96,29 @@ export class TriggeredAlertsRepo {
       .sort({ dateTriggered: -1 })
       .limit(limit)
       .lean();
+  }
+
+  async updateSentMessageDate(triggeredAlertId: Types.ObjectId, dateSent: Date) {
+    try {
+      const result = await this.model.findByIdAndUpdate(
+        triggeredAlertId,
+        {
+          $set: {
+            'sentMessage.email.sent': true,
+            'sentMessage.email.timeSent': dateSent
+          }
+        },
+        { new: true }
+      );
+      
+      if (result) {
+        console.log(`Updated sentMessage.email.date for triggered alert: ${triggeredAlertId}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Failed to update sentMessage.email.date for triggered alert ${triggeredAlertId}:`, error.message);
+      throw error;
+    }
   }
 }
