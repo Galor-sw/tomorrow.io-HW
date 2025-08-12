@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
+import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
 import { TriggeredAlertsRepo } from '../dal/repos/triggered.repo';
 import { WeatherService } from '../weather/weather.service';
@@ -70,7 +70,6 @@ export class SchedulerService implements OnModuleInit {
     return cronMap[envValue] || envValue;
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES) // This will be overridden
   async handleCron() {
     try {
       // Fetch alerts already grouped by location from MongoDB
