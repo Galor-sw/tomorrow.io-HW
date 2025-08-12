@@ -33,7 +33,7 @@ export class SchedulerService implements OnModuleInit {
       job.stop();
       console.log('🛑 Stopped default cron job');
     } catch (error) {
-      console.log('ℹ️  No default cron job to stop');
+      
     }
 
     // Start a new cron job with the environment variable

@@ -28,6 +28,5 @@ export class User implements UserInterface {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Useful indexes
-UserSchema.index({ email: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ role: 1 });

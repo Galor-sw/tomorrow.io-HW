@@ -33,7 +33,6 @@ export class Parameter {
 export const ParameterSchema = SchemaFactory.createForClass(Parameter);
 
 // Indexes
-ParameterSchema.index({ name: 1 });
 ParameterSchema.index({ category: 1 });
 ParameterSchema.index({ type: 1 });
 ParameterSchema.index({ isActive: 1 });

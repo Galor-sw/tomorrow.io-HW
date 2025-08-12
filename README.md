@@ -2,150 +2,202 @@
 
 A comprehensive weather alert system built with Nest.js and MongoDB, designed to simulate microservices architecture within a single application.
 
-## Features
+## 🚀 Quick Start
 
-- **API Gateway Pattern** - Centralized routing for all external API calls
-- **MongoDB Atlas Integration** - Cloud database with Mongoose ODM
-- **Tomorrow.io Weather API** - Real-time weather data with location validation
-- **Alert Management** - Create and manage weather alerts with 19 supported parameters
-- **Location Validation** - Automatic validation of location names against weather API
-- **Comprehensive Error Handling** - User-friendly error messages and proper HTTP status codes
-- **TDD Approach** - Test-Driven Development with Jest
+### Prerequisites
 
-## Architecture
+- **Node.js 16+** (required for NestJS features)
+- **MongoDB Atlas account** (cloud database)
+- **Tomorrow.io API key** (weather data provider)
 
-The application consists of multiple modules representing different services:
+### Installation
 
-- **API Gateway Module** – Central router for all external API calls, orchestrating communication with internal services
-- **Scheduler Module** – Internal cron job for processing alerts (planned)
-- **Notifier Module** – Notification system for triggered alerts (planned)
-- **Weather Module** – Tomorrow.io API integration for weather data
-- **DAL Module** – Data Access Layer with Mongoose schemas and repositories
-
-## Prerequisites
-
-- Node.js 20 (see `.nvmrc`)
-- MongoDB Atlas account
-- Tomorrow.io API key
-
-## Getting Started
-
-1. **Install Node.js 20**:
+1. **Clone the repository:**
    ```bash
-   # Using Homebrew (macOS)
-   brew install node@20
-   export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
-   
-   # Or using nvm
-   nvm use
+   git clone <repository-url>
+   cd tommorow.io
    ```
 
-2. **Install dependencies**:
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Set environment variables**:
-   Create a `.env` file in the root directory with your configuration:
+3. **Create environment file:**
    ```bash
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   TOMORROW_IO_API_KEY=your_tomorrow_io_api_key
-   PORT=3001
+   cp example.env .env
    ```
-   
-   **Note**: The `.env` file contains sensitive information and is not included in this repository. Please contact the maintainer for the environment configuration file.
 
-4. **Run the application**:
+4. **Configure environment variables:**
+   
+   **Contact the maintainer to receive the `.env` file with the following variables:**
+   ```bash
+   # Database Configuration
+   MONGODB_URI=your_mongodb_atlas_connection_string
+   
+   # Weather API Configuration
+   TOMORROW_IO_API_KEY=your_tomorrow_io_api_key
+   TOMORROW_IO_BASE_URL=https://api.tomorrow.io/v4/weather/realtime
+   
+   # Server Configuration
+   PORT=3001
+   
+   # Scheduler Configuration
+   SCHEDULER_CRON_EXPRESSION=EVERY_5_MINUTES
+   SCHEDULER_DISABLED=false
+   ```
+
+5. **Run the application:**
    ```bash
    # Development mode with hot reload
    npm run dev
    
-   # Build and run production
+   # Production build
    npm run build
    npm run start
    ```
 
-5. **Run tests**:
+6. **Verify the server is running:**
    ```bash
-   # Unit tests
-   npm test
-   
-   # E2E tests
-   npm run test:e2e
-   
-   # Test coverage
-   npm run test:cov
+   curl http://localhost:3001/api/parameters/names
    ```
 
-## API Endpoints
+## 🏗️ Microservices Architecture
 
-### Weather Data
-- `GET /api/weather/:location` - Get real-time weather data for a location
+The application is designed as a **monorepo with microservices architecture**, where each module represents a different service:
 
-### Alerts
-- `GET /api/alerts` - List all alerts
-- `POST /api/alerts` - Create a new alert with location validation
+### **API Gateway Module** 
+- **Purpose**: Central router for all external API calls
+- **Responsibilities**: 
+  - Route external requests to internal services
+  - Handle authentication and authorization
+  - Validate incoming requests
+  - Orchestrate communication between services
+- **Endpoints**: `/api/alerts`, `/api/users`, `/api/parameters`, `/api/triggered-alerts`
 
-### Alert Creation Example
-```json
-POST /api/alerts
-{
-  "userId": "66b6e6f0b6c7d5e1a2b3c4d5",
-  "locationText": "toronto, canada",
-  "parameter": "temperature",
-  "operator": ">",
-  "threshold": 30,
-  "description": "Hot weather alert",
-  "units": "metric"
-}
+### **Scheduler Module**
+- **Purpose**: Internal cron job service for processing alerts
+- **Responsibilities**:
+  - Run scheduled tasks to check weather conditions
+  - Group alerts by location for efficient API calls
+  - Evaluate alert thresholds against real-time weather data
+  - Update alert trigger statuses
+- **Configuration**: Dynamic cron expressions via environment variables
+
+### **Notifier Module**
+- **Purpose**: Notification system for triggered alerts
+- **Responsibilities**:
+  - Send email notifications
+  - Send SMS notifications
+  - Track notification delivery status
+- **Status**: Ready for implementation
+
+### **Weather Module**
+- **Purpose**: Tomorrow.io API integration
+- **Responsibilities**:
+  - Fetch real-time weather data
+  - Validate location names
+  - Handle API rate limiting and errors
+  - Cache weather data for efficiency
+
+### **DAL (Data Access Layer) Module**
+- **Purpose**: Centralized data access with strict separation of concerns
+- **Responsibilities**:
+  - Manage all database operations
+  - Provide repository pattern implementation
+  - Handle data validation and transformation
+  - Ensure data consistency across services
+
+## 🎯 Core Functionality
+
+### **Alert Management**
+- **Create Alerts**: Set up weather condition monitoring with custom thresholds
+- **Location Validation**: Automatic validation against Tomorrow.io API
+- **Parameter Support**: 20+ weather parameters (temperature, humidity, wind, etc.)
+- **Dynamic Parameters**: Database-driven parameter management
+- **Delete Alerts**: Remove alerts with proper cleanup
+
+### **Weather Monitoring**
+- **Real-time Data**: Fetch current weather conditions from Tomorrow.io
+- **Location Support**: Global location coverage with automatic geocoding
+- **Parameter Coverage**: Comprehensive weather metrics including:
+  - Temperature (actual and feels-like)
+  - Precipitation (rain, snow, sleet intensity)
+  - Atmospheric (humidity, pressure, dew point)
+  - Wind (speed, direction, gusts)
+  - Visibility (cloud cover, UV index, visibility)
+
+### **Intelligent Scheduling**
+- **Dynamic Cron Jobs**: Configurable scheduling via environment variables
+- **Efficient Processing**: Group alerts by location to minimize API calls
+- **Status Tracking**: Monitor alert trigger status with timestamps
+- **Error Handling**: Robust error handling with logging
+
+### **Triggered Alerts System**
+- **Automatic Detection**: Monitor weather conditions against alert thresholds
+- **Historical Tracking**: Store all triggered alerts with detailed information
+- **Status Updates**: Real-time alert status updates
+- **API Access**: Complete API for triggered alerts management
+
+### **User Management**
+- **User Profiles**: Create and manage user accounts
+- **Alert Association**: Link alerts to specific users
+- **Data Cleanup**: Automatic cleanup when alerts are deleted
+
+## 📡 API Endpoints
+
+### **Alerts**
+- `GET /api/alerts` - Get all alerts
+- `POST /api/alerts` - Create new alert
+- `DELETE /api/alerts` - Delete alert (JSON body with `_id`)
+
+### **Parameters**
+- `GET /api/parameters` - Get all weather parameters
+- `GET /api/parameters/names` - Get parameter names only
+- `GET /api/parameters/categories` - Get parameters by category
+- `GET /api/parameters/numeric` - Get numeric parameters only
+- `GET /api/parameters/categorical` - Get categorical parameters only
+
+### **Triggered Alerts**
+- `GET /api/triggered-alerts` - Get all triggered alerts
+- `GET /api/triggered-alerts?limit=10` - Get limited triggered alerts
+- `GET /api/triggered-alerts/recent` - Get recent triggered alerts
+- `GET /api/triggered-alerts/alert/{alertId}` - Get triggered alerts by alert ID
+- `GET /api/triggered-alerts/user/{userId}` - Get triggered alerts by user ID
+
+
+### **Weather Data**
+- `GET /api/weather/{location}` - Get weather data for location
+
+## 🔧 Configuration
+
+ ### **Environment Variables**
+ - `MONGODB_URI`: MongoDB Atlas connection string
+ - `TOMORROW_IO_API_KEY`: Tomorrow.io API key
+ - `TOMORROW_IO_BASE_URL`: Tomorrow.io API base URL (optional, has default)
+ - `PORT`: Server port (default: 3001)
+ - `SCHEDULER_CRON_EXPRESSION`: Cron job timing
+ - `SCHEDULER_DISABLED`: Enable/disable scheduler
+
+### **Scheduler Timing Options**
+- `EVERY_MINUTE` - Every minute
+- `EVERY_5_MINUTES` - Every 5 minutes
+- `EVERY_10_MINUTES` - Every 10 minutes
+- `EVERY_30_MINUTES` - Every 30 minutes
+- `EVERY_HOUR` - Every hour
+- `EVERY_DAY` - Every day
+- `EVERY_WEEK` - Every week
+- `EVERY_MONTH` - Every month
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+npm test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
-
-## Supported Weather Parameters
-
-The system supports all 19 Tomorrow.io weather parameters:
-- `cloudBase`, `cloudCeiling`, `cloudCover`, `dewPoint`, `freezingRainIntensity`
-- `humidity`, `precipitationProbability`, `pressureSurfaceLevel`, `rainIntensity`
-- `sleetIntensity`, `snowIntensity`, `temperature`, `temperatureApparent`
-- `uvHealthConcern`, `uvIndex`, `visibility`, `weatherCode`, `windDirection`
-- `windGust`, `windSpeed`
-
-## Error Handling
-
-The system provides comprehensive error handling:
-- **Invalid Location**: Returns 400 Bad Request with helpful error message
-- **Weather API Errors**: Returns 502 Bad Gateway with detailed error information
-- **Validation Errors**: Returns 400 Bad Request with class-validator details
-
-## Development
-
-The project follows Test-Driven Development (TDD) practices:
-
-1. Write tests first
-2. Implement just enough code to pass tests
-3. Refactor while keeping tests passing
-
-## Project Structure
-
-```
-src/
-├── main.ts                 # Application entry point with environment loading
-├── app.module.ts           # Main app module
-└── modules/
-    ├── apiGateway/         # API Gateway - central router for all requests
-    ├── scheduler/          # Cron job scheduler (planned)
-    ├── notifier/           # Notification service (planned)
-    ├── weather/            # Tomorrow.io API integration
-    └── dal/                # Data Access Layer
-        ├── types/          # TypeScript types and enums
-        ├── schemas/        # Mongoose schemas
-        └── repos/          # Repository pattern
-```
-
-## Next Steps
-
-- Implement Scheduler Module for alert processing
-- Implement Notifier Module for alert notifications
-- Add user authentication and authorization
-- Implement alert triggering logic
-- Add weather data caching
-- Implement alert history and analytics

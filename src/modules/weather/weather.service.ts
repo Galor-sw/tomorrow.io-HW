@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 export class WeatherService {
   private readonly logger = new Logger(WeatherService.name);
   private readonly apiKey = process.env.TOMORROW_IO_API_KEY;
-  private readonly baseUrl = 'https://api.tomorrow.io/v4/weather/realtime';
+  private readonly baseUrl = process.env.TOMORROW_IO_BASE_URL || 'https://api.tomorrow.io/v4/weather/realtime';
 
   constructor(private readonly httpService: HttpService) {}
 
