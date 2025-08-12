@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { TriggeredAlert, TriggeredAlertDoc } from '../schemas/triggered-alert.schema';
 
 @Injectable()
 export class TriggeredAlertsRepo {
+  private readonly logger = new Logger(TriggeredAlertsRepo.name);
+
   constructor(@InjectModel(TriggeredAlert.name) private model: Model<TriggeredAlertDoc>) {}
 
   create(data: Partial<TriggeredAlert>) {
@@ -33,9 +35,9 @@ export class TriggeredAlertsRepo {
       };
 
       await this.create(triggeredAlertData);
-      console.log(`Triggered alert saved to database for alert ID: ${alert._id}`);
+      this.logger.log(`Triggered alert saved to database for alert ID: ${alert._id}`);
     } catch (error) {
-      console.error(`Failed to save triggered alert: ${error.message}`);
+      this.logger.error(`Failed to save triggered alert: ${error.message}`);
     }
   }
 

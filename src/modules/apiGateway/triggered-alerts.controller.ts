@@ -6,8 +6,9 @@ export class TriggeredAlertsController {
   constructor(private readonly triggeredAlertsService: TriggeredAlertsService) {}
 
   @Get()
-  findAll() {
-    return this.triggeredAlertsService.findAll();
+  findAll(@Query('limit') limit?: string) {
+    const limitNumber = limit ? parseInt(limit, 10) : undefined;
+    return this.triggeredAlertsService.findAll(limitNumber);
   }
 
   @Get('recent')

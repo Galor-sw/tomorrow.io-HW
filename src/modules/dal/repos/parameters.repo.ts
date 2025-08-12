@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Parameter, ParameterDoc } from '../schemas/parameter.schema';
 
 @Injectable()
 export class ParametersRepo {
+  private readonly logger = new Logger(ParametersRepo.name);
+
   constructor(@InjectModel(Parameter.name) private model: Model<ParameterDoc>) {}
 
   create(data: Partial<Parameter>) {
@@ -49,7 +51,7 @@ export class ParametersRepo {
   async seedParameters() {
     const existingCount = await this.model.countDocuments();
     if (existingCount > 0) {
-      console.log('Parameters already seeded, skipping...');
+      this.logger.log('Parameters already seeded, skipping...');
       return;
     }
 
@@ -90,6 +92,6 @@ export class ParametersRepo {
     ];
 
     await this.model.insertMany(parameters);
-    console.log(`Seeded ${parameters.length} weather parameters`);
+    this.logger.log(`Seeded ${parameters.length} weather parameters`);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Alert, AlertDoc } from '../schemas/alert.schema';
@@ -6,6 +6,8 @@ import { AlertParameter, Operator, Units } from '../types/alert.types';
 
 @Injectable()
 export class AlertsRepo {
+  private readonly logger = new Logger(AlertsRepo.name);
+
   constructor(@InjectModel(Alert.name) private model: Model<AlertDoc>) {}
 
   create(data: Partial<Alert>) {
@@ -20,62 +22,72 @@ export class AlertsRepo {
     return this.model.find({ userId }).lean();
   }
 
+  findById(alertId: Types.ObjectId) {
+    return this.model.findById(alertId).lean();
+  }
+
+  async deleteById(alertId: Types.ObjectId) {
+    const result = await this.model.findByIdAndDelete(alertId);
+    if (result) {
+      this.logger.log(`Alert deleted successfully: ${alertId}`);
+    }
+    return result;
+  }
+
   async updateAlertTriggerStatus(alertId: Types.ObjectId, newStatus: 'triggered' | 'not_triggered') {
     // Always update the date, but only change status if it's different
     const result = await this.model.updateOne(
       { _id: alertId },
-      { 
-        $set: { 
-          triggerStatus: {
-            status: newStatus,
-            date: new Date()
-          }
-        } 
+      {
+        $set: {
+          'triggerStatus.status': newStatus,
+          'triggerStatus.date': new Date()
+        }
       }
     );
-    
-    // Return true if document was updated, false if no change needed
-    return result.modifiedCount > 0;
+    return result;
   }
 
   async updateAlertTriggerStatuses(triggeredAlertIds: Types.ObjectId[], notTriggeredAlertIds: Types.ObjectId[]) {
-    const currentDate = new Date();
-    
+    const results = [];
+
     // Update triggered alerts - always update date
     if (triggeredAlertIds.length > 0) {
       const triggeredResult = await this.model.updateMany(
         { _id: { $in: triggeredAlertIds } },
-        { 
-          $set: { 
-            triggerStatus: {
-              status: 'triggered',
-              date: currentDate
-            }
-          } 
+        {
+          $set: {
+            'triggerStatus.status': 'triggered',
+            'triggerStatus.date': new Date()
+          }
         }
       );
+
       if (triggeredResult.modifiedCount > 0) {
-        console.log(`${triggeredResult.modifiedCount} alerts updated to 'triggered' status`);
+        this.logger.log(`${triggeredResult.modifiedCount} alerts updated to 'triggered' status`);
       }
+      results.push(triggeredResult);
     }
-    
+
     // Update not triggered alerts - always update date
     if (notTriggeredAlertIds.length > 0) {
       const notTriggeredResult = await this.model.updateMany(
         { _id: { $in: notTriggeredAlertIds } },
-        { 
-          $set: { 
-            triggerStatus: {
-              status: 'not_triggered',
-              date: currentDate
-            }
-          } 
+        {
+          $set: {
+            'triggerStatus.status': 'not_triggered',
+            'triggerStatus.date': new Date()
+          }
         }
       );
+
       if (notTriggeredResult.modifiedCount > 0) {
-        console.log(`${notTriggeredResult.modifiedCount} alerts updated to 'not_triggered' status`);
+        this.logger.log(`${notTriggeredResult.modifiedCount} alerts updated to 'not_triggered' status`);
       }
+      results.push(notTriggeredResult);
     }
+
+    return results;
   }
 
   async findGroupedByLocation() {
@@ -87,37 +99,15 @@ export class AlertsRepo {
             lat: '$lat',
             lon: '$lon'
           },
-          alerts: {
-            $push: {
-              _id: '$_id',
-              userId: '$userId',
-              parameter: '$parameter',
-              operator: '$operator',
-              threshold: '$threshold',
-              description: '$description',
-              units: '$units',
-              triggerStatus: '$triggerStatus',
-              createdAt: '$createdAt',
-              updatedAt: '$updatedAt'
-            }
-          },
+          locationText: { $first: '$locationText' },
+          lat: { $first: '$lat' },
+          lon: { $first: '$lon' },
+          alerts: { $push: '$$ROOT' },
           count: { $sum: 1 }
         }
       },
       {
-        $project: {
-          location: {
-            locationText: '$_id.locationText',
-            lat: '$_id.lat',
-            lon: '$_id.lon'
-          },
-          alerts: 1,
-          count: 1,
-          _id: 0
-        }
-      },
-      {
-        $sort: { count: -1 }
+        $sort: { locationText: 1 }
       }
     ]);
   }
