@@ -16,6 +16,10 @@ export class AlertsRepo {
     return this.model.find().lean();
   }
 
+  findById(alertId: Types.ObjectId) {
+    return this.model.findById(alertId).lean();
+  }
+
   listAllByUser(userId: Types.ObjectId) {
     return this.model.find({ userId }).lean();
   }

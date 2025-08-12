@@ -3,6 +3,7 @@ import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
 import { TriggeredAlertsRepo } from '../dal/repos/triggered.repo';
 import { WeatherService } from '../weather/weather.service';
+import { NotifierService } from '../notifier/notifier.service';
 import { AlertParameter, ALL_PARAMS, Operator, OPERATORS } from '../dal/types/alert.types';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class SchedulerService implements OnModuleInit {
     private readonly alertsRepo: AlertsRepo,
     private readonly triggeredAlertsRepo: TriggeredAlertsRepo,
     private readonly weatherService: WeatherService,
+    private readonly notifierService: NotifierService,
     private readonly schedulerRegistry: SchedulerRegistry
   ) {}
 
@@ -91,9 +93,18 @@ export class SchedulerService implements OnModuleInit {
             
             // Save triggered alerts to database
             for (const alert of triggered) {
-              await this.triggeredAlertsRepo.saveTriggeredAlert(alert);
-              const alertMessage = `  - ${alert.description || alert.parameter} ${alert.operator} ${alert.threshold}`;
-              console.log(alertMessage);
+              try {
+                const savedTriggeredAlert = await this.triggeredAlertsRepo.saveTriggeredAlert(alert);
+                console.log("TRIGGERED ALERT SAVED SUCCESSFULLY - CALL NOTIFIER HERE");
+                
+                // Call notifier service asynchronously (don't wait for it)
+                this.notifierService.sendEmailForTriggeredAlert(savedTriggeredAlert._id);
+                
+                const alertMessage = `  - ${alert.description || alert.parameter} ${alert.operator} ${alert.threshold}`;
+                console.log(alertMessage);
+              } catch (error) {
+                console.error(`Failed to save triggered alert: ${error.message}`);
+              }
             }
           }
           
