@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post, Param, UsePipes, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Delete, UsePipes, ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
 import { AlertsService } from './alerts.service';
 import { CreateAlertDto } from './dtos/create-alert.dto';
+import { DeleteAlertDto } from './dtos/delete-alert.dto';
 
 @Controller('api')
 export class AlertsController {
@@ -9,6 +10,11 @@ export class AlertsController {
   @Get('alerts')
   findAll() {
     return this.alertsService.findAll();
+  }
+
+  @Get('alerts/:id')
+  findById(@Param('id') id: string) {
+    return this.alertsService.findById(id);
   }
 
   @Post('alerts')
@@ -22,68 +28,53 @@ export class AlertsController {
       if (error.message.includes('not found')) {
         throw new HttpException({
           statusCode: HttpStatus.NOT_FOUND,
+          error: 'Not Found',
           message: error.message,
-          error: 'Not Found'
         }, HttpStatus.NOT_FOUND);
       }
-      
-      // Handle invalid location errors
-      if (error.message.includes('Invalid location name')) {
+
+      // Handle validation errors
+      if (error.message.includes('Invalid parameter') || error.message.includes('Invalid location name')) {
         throw new HttpException({
           statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Bad Request',
           message: error.message,
-          error: 'Bad Request'
         }, HttpStatus.BAD_REQUEST);
       }
-      
-      // Handle other weather API errors
-      if (error.message.includes('Weather API error')) {
-        throw new HttpException({
-          statusCode: HttpStatus.BAD_GATEWAY,
-          message: error.message,
-          error: 'Bad Gateway'
-        }, HttpStatus.BAD_GATEWAY);
-      }
-      
+
       // Handle other errors
       throw new HttpException({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Internal server error',
-        error: 'Internal Server Error'
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  // Weather endpoint - goes through API Gateway
-  @Get('weather/:location')
-  async getWeatherData(@Param('location') location: string) {
+  @Delete('alerts')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  async delete(@Body() dto: DeleteAlertDto) {
     try {
-      return await this.alertsService.getWeatherData(location);
+      return await this.alertsService.delete(dto._id);
     } catch (error) {
-      // Handle invalid location errors
-      if (error.message.includes('Invalid location name')) {
+      if (error.message.includes('not found')) {
         throw new HttpException({
-          statusCode: HttpStatus.BAD_REQUEST,
+          statusCode: HttpStatus.NOT_FOUND,
+          error: 'Not Found',
           message: error.message,
-          error: 'Bad Request'
-        }, HttpStatus.BAD_REQUEST);
+        }, HttpStatus.NOT_FOUND);
       }
-      
-      // Handle other weather API errors
-      if (error.message.includes('Weather API error')) {
-        throw new HttpException({
-          statusCode: HttpStatus.BAD_GATEWAY,
-          message: error.message,
-          error: 'Bad Gateway'
-        }, HttpStatus.BAD_GATEWAY);
-      }
-      
-      // Handle other errors
+
       throw new HttpException({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Internal server error',
-        error: 'Internal Server Error'
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
       }, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @Get('weather/:location')
+  getWeatherData(@Param('location') location: string) {
+    return this.alertsService.getWeatherData(location);
   }
 }

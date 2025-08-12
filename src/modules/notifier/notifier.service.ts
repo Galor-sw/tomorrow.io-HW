@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class NotifierService {
+  private readonly logger = new Logger(NotifierService.name);
+
   sendNotification(message: string) {
-    console.log(`Notification: ${message}`);
+    this.logger.log(`Notification: ${message}`);
+    // TODO: Implement actual notification logic (email, SMS, etc.)
   }
 }

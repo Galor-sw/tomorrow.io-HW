@@ -6,7 +6,10 @@ import { TriggeredAlertsRepo } from '../dal/repos/triggered.repo';
 export class TriggeredAlertsService {
   constructor(private readonly triggeredAlertsRepo: TriggeredAlertsRepo) {}
 
-  async findAll() {
+  async findAll(limit?: number) {
+    if (limit) {
+      return this.triggeredAlertsRepo.findRecent(limit);
+    }
     return this.triggeredAlertsRepo.findAll();
   }
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AlertsRepo } from '../dal/repos/alerts.repo';
 import { CreateAlertDto } from './dtos/create-alert.dto';
@@ -9,6 +9,8 @@ import { ParametersRepo } from '../dal/repos/parameters.repo';
 
 @Injectable()
 export class AlertsService {
+  private readonly logger = new Logger(AlertsService.name);
+
   constructor(
     private readonly alertsRepo: AlertsRepo,
     private readonly weatherService: WeatherService,
@@ -32,11 +34,11 @@ export class AlertsService {
 
     // Validate location exists by making a weather API call
     try {
-      console.log(`Validating location: ${dto.locationText}`);
+      this.logger.log(`Validating location: ${dto.locationText}`);
       const weatherData = await this.weatherService.getWeatherData(dto.locationText);
       
       // If we get here, the location is valid
-      console.log(`Location validated successfully: ${dto.locationText}`);
+      this.logger.log(`Location validated successfully: ${dto.locationText}`);
       
       // Use the coordinates from the weather API response if not provided
       const locationData = weatherData.location;
@@ -78,11 +80,35 @@ export class AlertsService {
     return this.alertsRepo.findAll();
   }
 
+  async findById(alertId: string) {
+    const alert = await this.alertsRepo.findById(new Types.ObjectId(alertId));
+    if (!alert) {
+      throw new NotFoundException(`Alert with ID ${alertId} not found`);
+    }
+    return alert;
+  }
+
+  async delete(alertId: string) {
+    // First check if alert exists
+    const alert = await this.alertsRepo.findById(new Types.ObjectId(alertId));
+    if (!alert) {
+      throw new NotFoundException(`Alert with ID ${alertId} not found`);
+    }
+
+    // Delete the alert
+    const deletedAlert = await this.alertsRepo.deleteById(new Types.ObjectId(alertId));
+    
+    // Remove the alert from the user's alerts array
+    await this.usersService.removeAlertFromUser(alert.userId.toString(), new Types.ObjectId(alertId));
+    
+    return { message: 'Alert deleted successfully', deletedAlert };
+  }
+
   async getWeatherData(location: string) {
     // API Gateway orchestrates the call to Weather Service
-    console.log(`API Gateway: Fetching weather for ${location}`);
+    this.logger.log(`API Gateway: Fetching weather for ${location}`);
     const weatherData = await this.weatherService.getWeatherData(location);
-    console.log(`API Gateway: Weather data received:`, weatherData);
+    this.logger.log(`API Gateway: Weather data received for ${location}`);
     return weatherData;
   }
 }
